@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">LaberintoC</string>
+
+
+    <string name="locationID">locationID</string>
+    <string name="locationName">locationName</string>
 </resources>
