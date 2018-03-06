@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import in.goflo.laberintoc.LiveData.FirestoreQueryLiveData;
+import in.goflo.laberintoc.Model.LocationDetails;
 
 /**
  * Created by amisha on 1/3/18.
