@@ -41,7 +41,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChanged(@Nullable List<LocationDetails> locationDetails) {
                 if(locationDetails != null) {
-
                     adapter = new LocationListAdapter(getApplicationContext(), locationDetails);
                     recyclerView.setAdapter(adapter);
                     recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
