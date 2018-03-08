@@ -89,6 +89,8 @@ public class ViewMapActivity extends AppCompatActivity {
     }
 
     private void trackLocation() {
+        locationTextView.setText("Location");
+        responseTextView.setText("Response");
         if(PermissionManager.checkAndRequestPermissions(this)) {
             readFingerprints();
         }
@@ -193,7 +195,7 @@ public class ViewMapActivity extends AppCompatActivity {
             public void onChanged(@Nullable String s) {
                 buildingName = s;
                 Log.d(TAG, "building name "  + buildingName);
-                locationTextView.setText("You are in room " + roomName + " in " + buildingName);
+                locationTextView.setText("You are in " + roomName + " in " + buildingName);
             }
         });
 
