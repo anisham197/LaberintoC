@@ -12,6 +12,8 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -49,10 +51,11 @@ public class ViewMapActivity extends AppCompatActivity {
     private static final String PERMISSION_MSG = "Location Services Permission required for this app";
     private static final String TAG = "ViewMapActivity";
 
-    JSONArray fingerprintArray;
-    JSONObject requestJSON;
+    private JSONArray fingerprintArray;
+    private JSONObject requestJSON;
 
-    TextView locationTextView, responseTextView;
+    private TextView locationTextView, responseTextView;
+    private Button trackButton;
 
     private String UID = "xxxx";
     private String location = "xxxxx";
@@ -69,11 +72,25 @@ public class ViewMapActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_map);
+
         locationTextView = (TextView) findViewById(R.id.textview_location);
         responseTextView = (TextView) findViewById(R.id.textView_response);
+        trackButton = (Button)findViewById(R.id.button_track);
 
         fingerprintArray = new JSONArray();
         group = getIntent().getStringExtra(getString(R.string.locationID));
+
+        trackButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                trackLocation();
+            }
+        });
+    }
+
+    private void trackLocation() {
+        locationTextView.setText("Location");
+        responseTextView.setText("Response");
         if(PermissionManager.checkAndRequestPermissions(this)) {
             readFingerprints();
         }
@@ -178,7 +195,7 @@ public class ViewMapActivity extends AppCompatActivity {
             public void onChanged(@Nullable String s) {
                 buildingName = s;
                 Log.d(TAG, "building name "  + buildingName);
-                locationTextView.setText("You are in room " + roomName + " in " + buildingName);
+                locationTextView.setText("You are in " + roomName + " in " + buildingName);
             }
         });
 
