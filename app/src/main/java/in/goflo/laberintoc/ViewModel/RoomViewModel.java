@@ -26,7 +26,7 @@ public class RoomViewModel extends ViewModel {
     private static final String TAG = "RoomViewModel";
     private static final String KEY_NAME = "name";
     private static final String KEY_ROOMS = "rooms";
-    private static final String KEY_BUILDINGID = "buildingID";
+    private static final String KEY_BUILDINGID = "buildingId";
 
     private String roomID;
     private static Query roomQuery;

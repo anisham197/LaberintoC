@@ -11,6 +11,8 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import in.goflo.laberintoc.Model.LocationDetails;
@@ -41,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChanged(@Nullable List<LocationDetails> locationDetails) {
                 if(locationDetails != null) {
+                    Collections.sort(locationDetails, new LocationComparator());
                     adapter = new LocationListAdapter(getApplicationContext(), locationDetails);
                     recyclerView.setAdapter(adapter);
                     recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
@@ -48,5 +51,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private class LocationComparator implements Comparator<LocationDetails> {
+
+        public int compare(LocationDetails l1, LocationDetails l2) {
+            return l1.getLocationName().compareTo(l2.getLocationName());
+        }
     }
 }
