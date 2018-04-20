@@ -6,6 +6,7 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.net.wifi.ScanResult;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
@@ -51,15 +52,13 @@ public class ViewMapActivity extends AppCompatActivity {
     private static final String PERMISSION_MSG = "Location Services Permission required for this app";
     private static final String TAG = "ViewMapActivity";
 
-    private JSONArray fingerprintArray;
-    private JSONObject requestJSON;
+    private JSONArray finalFingerprint;
 
     private TextView locationTextView, responseTextView;
-    private Button trackButton;
 
     private String UID = "xxxx";
     private String location = "xxxxx";
-    private String group;
+    private String groupLocationID;
 
     private String buildingID, buildingName, roomID, roomName;
 
@@ -68,6 +67,9 @@ public class ViewMapActivity extends AppCompatActivity {
 
     private Disposable wifiSubscription;
 
+    private Handler handler;
+    private Runnable getLocation;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,28 +77,63 @@ public class ViewMapActivity extends AppCompatActivity {
 
         locationTextView = (TextView) findViewById(R.id.textview_location);
         responseTextView = (TextView) findViewById(R.id.textView_response);
-        trackButton = (Button)findViewById(R.id.button_track);
 
-        fingerprintArray = new JSONArray();
-        group = getIntent().getStringExtra(getString(R.string.locationID));
-
-        trackButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                trackLocation();
-            }
-        });
+        groupLocationID = getIntent().getStringExtra(getString(R.string.locationID));
+        handler = new Handler();
     }
 
-    private void trackLocation() {
-        locationTextView.setText("Location");
-        responseTextView.setText("Response");
+    @Override
+    protected void onResume() {
+        super.onResume();
         if(PermissionManager.checkAndRequestPermissions(this)) {
+            Log.d(TAG, "On Resume called, reading Wifi fingerprints");
             readFingerprints();
+            requestCurrentLocation();
         }
     }
 
+    @Override protected void onPause() {
+        super.onPause();
+        safelyUnsubscribe(wifiSubscription);
+        handler.removeCallbacks(getLocation);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        safelyUnsubscribe(wifiSubscription);
+        handler.removeCallbacks(getLocation);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        safelyUnsubscribe(wifiSubscription);
+        handler.removeCallbacks(getLocation);
+    }
+
+    private void requestCurrentLocation() {
+        getLocation = new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(), "Runnable called", Toast.LENGTH_SHORT).show();
+                if (finalFingerprint != null) {
+                    JSONObject requestJSON = createRequestJson();
+                    if (requestJSON != null) {
+                        getResult(requestJSON);
+                    }
+                }
+                handler.postDelayed( this , 5000);
+                Log.d(TAG, "Inner handler called");
+            }
+        };
+        handler.post( getLocation );
+        Log.d(TAG, "Outer handler called");
+    }
+
+
     private void readFingerprints(){
+        Log.d(TAG, "Read Fingerprints called");
         boolean fineLocationPermissionNotGranted =
                 ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED;
         boolean coarseLocationPermissionNotGranted =
@@ -117,16 +154,14 @@ public class ViewMapActivity extends AppCompatActivity {
                     .subscribe(new Consumer<List<ScanResult>>() {
                         @Override
                         public void accept(List<ScanResult> results) throws Exception {
-                            Log.d(TAG, "results " + results);
-                            safelyUnsubscribe(wifiSubscription);
+                            JSONArray fingerprintArray = new JSONArray();
                             for (ScanResult result : results) {
                                 JSONObject temp = new JSONObject();
                                 temp.put("mac",result.BSSID);
                                 temp.put("rssi",result.level);
                                 fingerprintArray.put(temp);
                             }
-                            createRequestJson();
-                            getResult();
+                            finalFingerprint =  fingerprintArray;
                         }
                     });
         }catch (SecurityException e){
@@ -134,19 +169,27 @@ public class ViewMapActivity extends AppCompatActivity {
         }
     }
 
-    private void createRequestJson() throws Exception{
-        requestJSON = new JSONObject();
-        long timestamp = System.currentTimeMillis();
 
-        requestJSON.put("group", group);
-        requestJSON.put("username", UID);
-        requestJSON.put("location", location);
-        requestJSON.put("time", timestamp);
-        requestJSON.put("wifi-fingerprint", fingerprintArray);
-        Log.d(TAG, "json "  + requestJSON);
+
+    private JSONObject createRequestJson(){
+        JSONObject requestJSON = new JSONObject();
+        long timestamp = System.currentTimeMillis();
+        try {
+            requestJSON.put("group", groupLocationID);
+            requestJSON.put("username", UID);
+            requestJSON.put("location", location);
+            requestJSON.put("time", timestamp);
+            requestJSON.put("wifi-fingerprint", finalFingerprint);
+            Log.d(TAG, "json "  + requestJSON);
+            return requestJSON;
+        }
+        catch (JSONException e){
+            Log.d(TAG, e.getMessage());
+            return null;
+        }
     }
 
-    private void getResult() {
+    private void getResult(JSONObject requestJSON) {
         queue = Volley.newRequestQueue(this);
         JsonObjectRequest request_json = new JsonObjectRequest(url, requestJSON,
                 new Response.Listener<JSONObject>() {
@@ -179,6 +222,7 @@ public class ViewMapActivity extends AppCompatActivity {
             public void onChanged(@Nullable RoomDetails roomDetails) {
                 if(roomDetails != null) {
                     roomName = roomDetails.getRoomName();
+                    locationTextView.setText("You are in " + roomName);
                     buildingID = roomDetails.getBuildingID();
                     getBuildingData();
                 }
@@ -195,7 +239,7 @@ public class ViewMapActivity extends AppCompatActivity {
             public void onChanged(@Nullable String s) {
                 buildingName = s;
                 Log.d(TAG, "building name "  + buildingName);
-                locationTextView.setText("You are in " + roomName + " in " + buildingName);
+                locationTextView.append(" in " + buildingName);
             }
         });
 
@@ -207,16 +251,6 @@ public class ViewMapActivity extends AppCompatActivity {
                 subscription.dispose();
             }
         }
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    @Override protected void onPause() {
-        super.onPause();
-        safelyUnsubscribe(wifiSubscription);
     }
 
     @Override
