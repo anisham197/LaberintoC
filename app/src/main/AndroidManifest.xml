@@ -20,7 +20,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".View.Activity.ViewMapActivity"></activity>
+        <activity android:name=".View.Activity.ViewMapActivity" />
+        <activity android:name=".View.Activity.WebViewActivity"></activity>
     </application>
 
 </manifest>
