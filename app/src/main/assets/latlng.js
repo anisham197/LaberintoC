@@ -85,7 +85,6 @@ LatLon.prototype.bearingTo = function(point) {
   var x = Math.cos(theta1)*Math.sin(theta2) -
           Math.sin(theta1)*Math.cos(theta2)*Math.cos(deltalambda);
   var rad = Math.atan2(y, x);
-  console.log(rad.toDegrees());
   return (rad.toDegrees()+360) % 360;
 };
 
