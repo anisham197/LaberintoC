@@ -27,6 +27,7 @@ function initMap() {
     fullscreenControl: true
   });
   showFloorplanWithMarkersForLevel(1);
+  try_firestore();
 }
 
 // function getFloorplanInfo(callback) {
