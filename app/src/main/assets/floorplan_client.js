@@ -1,5 +1,6 @@
 var map; 
 var buttons = [];
+//TODO: retrieve floor numbers from firestore
 var numFloors = 5;
 
 function initMap() {
@@ -15,9 +16,9 @@ function initMap() {
 		rotateControl: true,
 		fullscreenControl: true
 	});
+	getFloorplans();
 	displayLevelPicker(); 
-	showFloorplanWithMarkersForLevel(1);
-	try_firestore();
+//	showFloorplanWithMarkersForLevel(1);
 }
 
 
@@ -45,7 +46,9 @@ function LevelPickerControl(div) {
 		buttons[i].addEventListener('click', function(event){
 			console.log("Floor clicked " + event.target.id);
 			var level = event.target.id;
-			showFloorplanWithMarkersForLevel(level);
+			// TODO: make it specific to a building
+            // showFloorplanWithMarkersForLevel(floorplan, level);
+            showFloorplanWithMarkersForLevel(floorplans['iB19c3KlJEgrSKHmnyDK'], level);
 		});
 	}
 	for(var i = numFloors; i >= 1; i--){
