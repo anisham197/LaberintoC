@@ -1,6 +1,9 @@
 package in.goflo.laberintoc.View;
 
 import android.content.Context;
+import android.util.Log;
+
+import in.goflo.laberintoc.Helper.AuthManager;
 
 /**
  * Created by Anisha Mascarenhas on 20-04-2018.
@@ -21,4 +24,17 @@ public class JavaScriptInterface {
     public String getLocationId() {
         return locationID;
     }
+
+    @android.webkit.JavascriptInterface
+    public String getUserId() {
+        Log.d("JavaScriptInterface", AuthManager.getUid(context));
+        return AuthManager.getUid(context);
+    }
+
+    //TODO: define lat lng of location
+    @android.webkit.JavascriptInterface
+    public void getLocationLatLng() {
+        return;
+    }
+
 }

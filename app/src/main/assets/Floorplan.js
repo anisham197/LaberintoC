@@ -1,5 +1,4 @@
 function Floorplan(object) {
-
     var floorplan = {};
     for( var key in object) {
         if(key != 'locationId') {

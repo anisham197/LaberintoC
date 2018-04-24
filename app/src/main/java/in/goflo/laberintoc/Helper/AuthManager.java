@@ -2,6 +2,7 @@ package in.goflo.laberintoc.Helper;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import com.google.firebase.auth.FirebaseUser;
 
@@ -11,6 +12,7 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class AuthManager {
 
+    private static final String TAG = "AuthManager";
     private static final String KEY_PREFERENCES = "auth";
     private final static String KEY_EMAIL = "email";
     private final static String KEY_UID = "uid";
