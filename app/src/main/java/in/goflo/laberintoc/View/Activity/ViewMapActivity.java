@@ -48,7 +48,7 @@ public class ViewMapActivity extends AppCompatActivity {
 
     private JSONArray finalFingerprint;
 
-    private String UID = AuthManager.getUid(this);
+    private String UID;
     private String location = "xxxxx";
     private String groupLocationID;
 
@@ -67,6 +67,8 @@ public class ViewMapActivity extends AppCompatActivity {
         setContentView(R.layout.activity_view_map);
 
         groupLocationID = getIntent().getStringExtra(getString(R.string.locationID));
+        UID = AuthManager.getUid(this);
+
         handler = new Handler();
         webView = findViewById(R.id.web_view);
         webView.loadUrl("file:///android_asset/map.html");

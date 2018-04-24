@@ -30,36 +30,42 @@ function initMap() {
 		fullscreenControl: true
 	});
 
-	marker = new google.maps.Marker({
-		map: map,
-		position: {lat: 0, lng: 0},
-		title: "Empty",
-		visible: false,
-	});
+//	google.maps.event.addListener(map, 'tilesloaded', function() {
 
-    getNumberOfFloors(function(result){
-        if( result == true) {
-            levels = numberOfFloors[buildingId];
-            displayLevelPicker();
-        }
-        else {
-            console.log("Unable to retrieve floor numbers");
-        }
-	});
+		marker = new google.maps.Marker({
+			map: map,
+			position: {lat: 0, lng: 0},
+			title: "Empty",
+			visible: false,
+		});
 	
-	getFloorplans(function(result){
-		if(result == true){
-			for(var key in floorplans){
-                showFloorplanForLevel(key, floorplans[key], 1);
+		getNumberOfFloors(function(result){
+			if( result == true) {
+				levels = numberOfFloors[buildingId];
+				displayLevelPicker();
 			}
-		}
-		else {
-			console.log("Unable to retrieve floorplans");
-		}
-	});
-	
-	//implement listener to keep track of current location
-	getCurrentLocation();
+			else {
+				console.log("Unable to retrieve floor numbers");
+			}
+		});
+		
+		getFloorplans(function(result){
+			if(result == true){
+				for(var key in floorplans){
+					showFloorplanForLevel(key, floorplans[key], 1);
+				}
+			}
+			else {
+				console.log("Unable to retrieve floorplans");
+			}
+		});
+		
+		//implement listener to keep track of current location
+		getCurrentLocation();
+
+		//clear the listener, we only need it once
+//		google.maps.event.clearListeners(map, 'tilesloaded');
+//	 });
 
 }
 

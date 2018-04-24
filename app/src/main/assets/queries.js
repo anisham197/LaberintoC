@@ -1,7 +1,7 @@
 function getFloorplans(callback) {
     var db = firebase.firestore();
     var locationId = Android.getLocationId();
-    // var locationId = 'WwcCPsNYRnqXhe4WiL8q';
+//    var locationId = 'WwcCPsNYRnqXhe4WiL8q';
 
     db.collection("floorplans").where("locationId", "==", locationId).get()
         .then(querySnapshot => {
@@ -23,8 +23,8 @@ function getFloorplans(callback) {
 
 function getNumberOfFloors(callback) {
     var db = firebase.firestore();
-    var locationId = Android.getLocationId();
-    // var locationId = 'WwcCPsNYRnqXhe4WiL8q';
+     var locationId = Android.getLocationId();
+//    var locationId = 'WwcCPsNYRnqXhe4WiL8q';
 
     db.collection("buildings").where("locationId", "==", locationId).get()
         .then(querySnapshot => {
@@ -47,8 +47,8 @@ function getNumberOfFloors(callback) {
 
 function getCurrentLocation() {
     var db = firebase.firestore();
-    var userId = Android.getUserId();
-//     var userId = '3T3LV2w65RUUQl24MsHBrhu2t7G2';
+     var userId = Android.getUserId();
+//    var userId = '3T3LV2w65RUUQl24MsHBrhu2t7G2';
 
     var currentLocationListener = db.collection('users').doc(userId)
         .onSnapshot(function(doc) {
