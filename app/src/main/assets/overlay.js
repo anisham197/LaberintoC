@@ -1,13 +1,13 @@
-var canvasArray = [];
-
-function showFloorplanWithMarkersForLevel(floorplan, level){
-    clearFloorPlan();
+function showFloorplanWithMarkersForLevel(building, floorplan, level){
+    console.log("Show Floorplan called");
+    clearFloorPlan(building);
     pickerSelectUI(level);
-    var floorplanInfo = floorplan.getFloorplanInfo(level);
 
+    var floorplanInfo = floorplan.getFloorplanInfo(level);
     if(floorplanInfo == null) {
         return;
     }
+
     var image = new Image();
     image.src = floorplanInfo.imageFilepath+'?nocache='+(new Date().getTime());
 
@@ -23,24 +23,22 @@ function showFloorplanWithMarkersForLevel(floorplan, level){
     google.maps.event.clearListeners(image, 'load');
     google.maps.event.addDomListener(image,'load',function(){
         console.log("Image load listener called");
-        var canvas =new FPOverlay(
+        var canvas = new FPOverlay(
             image,
             map,
             {x: bearingX, y: bearingY},
             {sw: coordinates.sw, nw: coordinates.nw, ne: coordinates.ne, se: coordinates.se}
         );
-        canvasArray.push(canvas);
+        canvasArray[building] = canvas;
     });
 }
 
 
-function clearFloorPlan(){
-    for(var i = 0; i < canvasArray.length; i++) {
-        var canvas = canvasArray[i];
-        if(canvas) {
+function clearFloorPlan(building){
+    console.log("Clear Floorplan called");
+    var canvas = canvasArray[building];
+    if(canvas) {
         canvas.setMap(null);
         canvas = null;
-        }
-    }
-    canvasArray = [];
+    }   
 }

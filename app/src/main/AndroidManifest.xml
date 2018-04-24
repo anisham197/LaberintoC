@@ -22,7 +22,6 @@
         </activity>
         <activity android:name=".View.Activity.MainActivity"></activity>
         <activity android:name=".View.Activity.ViewMapActivity" />
-        <activity android:name=".View.Activity.WebViewActivity" />
 
     </application>
 

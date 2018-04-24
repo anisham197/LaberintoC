@@ -1,29 +1,18 @@
 package in.goflo.laberintoc.View.Activity;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.net.wifi.ScanResult;
 import android.os.Handler;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.Toast;
 
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 import com.github.pwittchen.reactivewifi.AccessRequester;
 import com.github.pwittchen.reactivewifi.ReactiveWifi;
 
@@ -34,10 +23,8 @@ import org.json.JSONObject;
 import java.util.List;
 
 import in.goflo.laberintoc.Helper.PermissionManager;
-import in.goflo.laberintoc.Model.RoomDetails;
 import in.goflo.laberintoc.R;
-import in.goflo.laberintoc.ViewModel.BuildingViewModel;
-import in.goflo.laberintoc.ViewModel.RoomViewModel;
+import in.goflo.laberintoc.View.JavaScriptInterface;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
@@ -54,32 +41,34 @@ public class ViewMapActivity extends AppCompatActivity {
 
     private JSONArray finalFingerprint;
 
-    private TextView locationTextView, responseTextView;
-
     private String UID = "xxxx";
     private String location = "xxxxx";
     private String groupLocationID;
 
-    private String buildingID, buildingName, roomID, roomName;
-
-    RequestQueue queue;
-    final static String url = "http://maps.goflo.in/track";
+//    RequestQueue queue;
+//    final static String url = "http://maps.goflo.in/track";
 
     private Disposable wifiSubscription;
 
     private Handler handler;
-    private Runnable getLocation;
+    private Runnable getLocationRunnable;
+    private WebView webView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_map);
 
-        locationTextView = (TextView) findViewById(R.id.textview_location);
-        responseTextView = (TextView) findViewById(R.id.textView_response);
-
         groupLocationID = getIntent().getStringExtra(getString(R.string.locationID));
         handler = new Handler();
+        webView = findViewById(R.id.web_view);
+        webView.loadUrl("file:///android_asset/map.html");
+        webView.addJavascriptInterface(new JavaScriptInterface(this, groupLocationID), "Android");
+
+        WebSettings webSettings = webView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webSettings.setAllowFileAccessFromFileURLs(true);
+
     }
 
     @Override
@@ -95,39 +84,39 @@ public class ViewMapActivity extends AppCompatActivity {
     @Override protected void onPause() {
         super.onPause();
         safelyUnsubscribe(wifiSubscription);
-        handler.removeCallbacks(getLocation);
+        handler.removeCallbacks(getLocationRunnable);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         safelyUnsubscribe(wifiSubscription);
-        handler.removeCallbacks(getLocation);
+        handler.removeCallbacks(getLocationRunnable);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         safelyUnsubscribe(wifiSubscription);
-        handler.removeCallbacks(getLocation);
+        handler.removeCallbacks(getLocationRunnable);
     }
 
     private void requestCurrentLocation() {
-        getLocation = new Runnable() {
+        getLocationRunnable = new Runnable() {
             @Override
             public void run() {
                 Toast.makeText(getApplicationContext(), "Runnable called", Toast.LENGTH_SHORT).show();
                 if (finalFingerprint != null) {
                     JSONObject requestJSON = createRequestJson();
                     if (requestJSON != null) {
-                        getResult(requestJSON);
+                        //TODO: make API call to send fingerprints and update current location of user
                     }
                 }
                 handler.postDelayed( this , 5000);
                 Log.d(TAG, "Inner handler called");
             }
         };
-        handler.post( getLocation );
+        handler.post( getLocationRunnable );
         Log.d(TAG, "Outer handler called");
     }
 
@@ -170,7 +159,6 @@ public class ViewMapActivity extends AppCompatActivity {
     }
 
 
-
     private JSONObject createRequestJson(){
         JSONObject requestJSON = new JSONObject();
         long timestamp = System.currentTimeMillis();
@@ -189,61 +177,29 @@ public class ViewMapActivity extends AppCompatActivity {
         }
     }
 
-    private void getResult(JSONObject requestJSON) {
-        queue = Volley.newRequestQueue(this);
-        JsonObjectRequest request_json = new JsonObjectRequest(url, requestJSON,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.d(TAG,response.toString());
-                        responseTextView.setText(response.toString());
-                        try {
-                            roomID = response.get("location").toString();
-                            getRoomData();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e("Error: ", error.getMessage());
-            }
-        });
-        queue.add(request_json);
-    }
-
-    private void getRoomData() {
-        RoomViewModel roomViewModel = ViewModelProviders.of(this).get(RoomViewModel.class);
-        roomViewModel.setRoomID(roomID);
-        LiveData<RoomDetails> roomLiveData = roomViewModel.getRoomLiveData();
-        roomLiveData.observe(this, new Observer<RoomDetails>() {
-            @Override
-            public void onChanged(@Nullable RoomDetails roomDetails) {
-                if(roomDetails != null) {
-                    roomName = roomDetails.getRoomName();
-                    locationTextView.setText("You are in " + roomName);
-                    buildingID = roomDetails.getBuildingID();
-                    getBuildingData();
-                }
-            }
-        });
-    }
-
-    private void getBuildingData() {
-        BuildingViewModel buildingViewModel = ViewModelProviders.of(this).get(BuildingViewModel.class);
-        buildingViewModel.setBuildingID(buildingID);
-        LiveData<String> buildingLiveData = buildingViewModel.getBuildingLiveData();
-        buildingLiveData.observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(@Nullable String s) {
-                buildingName = s;
-                Log.d(TAG, "building name "  + buildingName);
-                locationTextView.append(" in " + buildingName);
-            }
-        });
-
-    }
+//    private void getResult(JSONObject requestJSON) {
+//        queue = Volley.newRequestQueue(this);
+//        JsonObjectRequest request_json = new JsonObjectRequest(url, requestJSON,
+//                new Response.Listener<JSONObject>() {
+//                    @Override
+//                    public void onResponse(JSONObject response) {
+//                        Log.d(TAG,response.toString());
+//                        responseTextView.setText(response.toString());
+//                        try {
+//                            roomID = response.get("location").toString();
+//                            getRoomData();
+//                        } catch (JSONException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                }, new Response.ErrorListener() {
+//            @Override
+//            public void onErrorResponse(VolleyError error) {
+//                VolleyLog.e("Error: ", error.getMessage());
+//            }
+//        });
+//        queue.add(request_json);
+//    }
 
     private void safelyUnsubscribe(Disposable... subscriptions) {
         for (Disposable subscription : subscriptions) {

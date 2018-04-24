@@ -13,7 +13,6 @@ import java.util.List;
 import in.goflo.laberintoc.Model.LocationDetails;
 import in.goflo.laberintoc.R;
 import in.goflo.laberintoc.View.Activity.ViewMapActivity;
-import in.goflo.laberintoc.View.Activity.WebViewActivity;
 
 /**
  * Created by Anisha Mascarenhas on 06-03-2018.
@@ -61,7 +60,7 @@ public class LocationListAdapter extends RecyclerView.Adapter<LocationListAdapte
         public void onClick(View view) {
             // Get the position of the item that was clicked.
             int position = getLayoutPosition();
-            Intent intent = new Intent(context, WebViewActivity.class);
+            Intent intent = new Intent(context, ViewMapActivity.class);
             intent.putExtra(context.getString(R.string.locationID), list.get(position).getLocationID());
             intent.putExtra(context.getString(R.string.locationName), list.get(position).getLocationName());
             context.startActivity(intent);
