@@ -13,6 +13,12 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Toast;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.github.pwittchen.reactivewifi.AccessRequester;
 import com.github.pwittchen.reactivewifi.ReactiveWifi;
 
@@ -22,6 +28,7 @@ import org.json.JSONObject;
 
 import java.util.List;
 
+import in.goflo.laberintoc.Helper.AuthManager;
 import in.goflo.laberintoc.Helper.PermissionManager;
 import in.goflo.laberintoc.R;
 import in.goflo.laberintoc.View.JavaScriptInterface;
@@ -41,12 +48,12 @@ public class ViewMapActivity extends AppCompatActivity {
 
     private JSONArray finalFingerprint;
 
-    private String UID = "xxxx";
+    private String UID = AuthManager.getUid(this);
     private String location = "xxxxx";
     private String groupLocationID;
 
-//    RequestQueue queue;
-//    final static String url = "http://maps.goflo.in/track";
+    RequestQueue queue;
+    final static String url = "http://vendor.maps.goflo.in/trackLocation";
 
     private Disposable wifiSubscription;
 
@@ -109,7 +116,7 @@ public class ViewMapActivity extends AppCompatActivity {
                 if (finalFingerprint != null) {
                     JSONObject requestJSON = createRequestJson();
                     if (requestJSON != null) {
-                        //TODO: make API call to send fingerprints and update current location of user
+                        // trackLocation(requestJSON);
                     }
                 }
                 handler.postDelayed( this , 5000);
@@ -177,29 +184,22 @@ public class ViewMapActivity extends AppCompatActivity {
         }
     }
 
-//    private void getResult(JSONObject requestJSON) {
-//        queue = Volley.newRequestQueue(this);
-//        JsonObjectRequest request_json = new JsonObjectRequest(url, requestJSON,
-//                new Response.Listener<JSONObject>() {
-//                    @Override
-//                    public void onResponse(JSONObject response) {
-//                        Log.d(TAG,response.toString());
-//                        responseTextView.setText(response.toString());
-//                        try {
-//                            roomID = response.get("location").toString();
-//                            getRoomData();
-//                        } catch (JSONException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }, new Response.ErrorListener() {
-//            @Override
-//            public void onErrorResponse(VolleyError error) {
-//                VolleyLog.e("Error: ", error.getMessage());
-//            }
-//        });
-//        queue.add(request_json);
-//    }
+    private void trackLocation(JSONObject requestJSON) {
+        queue = Volley.newRequestQueue(this);
+        JsonObjectRequest request_json = new JsonObjectRequest(url, requestJSON,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.d(TAG, response.toString());
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e("Error: ", error.getMessage());
+            }
+        });
+        queue.add(request_json);
+    }
 
     private void safelyUnsubscribe(Disposable... subscriptions) {
         for (Disposable subscription : subscriptions) {

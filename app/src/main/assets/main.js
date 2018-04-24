@@ -12,7 +12,7 @@ var numberOfFloors = {};
 var canvasArray = {};
 var levels; // number of levels for current building in focus
 var buildingId = 'iB19c3KlJEgrSKHmnyDK';
-
+var marker;
 
 function initMap() {
 	//TODO: retrieve location from Android
@@ -29,34 +29,42 @@ function initMap() {
 		rotateControl: true,
 		fullscreenControl: true
 	});
+
+	marker = new google.maps.Marker({
+		map: map,
+		position: {lat: 0, lng: 0},
+		title: "Empty",
+		visible: false,
+	});
+
     getNumberOfFloors(function(result){
         if( result == true) {
             levels = numberOfFloors[buildingId];
-            console.log("calling display Pickers");
             displayLevelPicker();
         }
         else {
             console.log("Unable to retrieve floor numbers");
         }
-    });
+	});
+	
 	getFloorplans(function(result){
 		if(result == true){
 			for(var key in floorplans){
-                console.log("Calling show floorplan with marker for level");
-                showFloorplanWithMarkersForLevel(key, floorplans[key], 1);
+                showFloorplanForLevel(key, floorplans[key], 1);
 			}
 		}
 		else {
 			console.log("Unable to retrieve floorplans");
 		}
 	});
+	
+	//implement listener to keep track of current location
+	getCurrentLocation();
 
-	//TODO: implement listener to keep track of current location
 }
 
 
 function displayLevelPicker() {
-	console.log("Level Picker called");
 	var picker = document.createElement('level_picker');
 	picker.style['padding-right'] = '40px';
 	picker.style['padding-top'] = '20px';
@@ -79,7 +87,7 @@ function LevelPickerControl(div) {
 			console.log("Floor clicked " + event.target.id);
 			var level = event.target.id;
 			// TODO: make it specific to a building based on zoom level
-            showFloorplanWithMarkersForLevel(buildingId, floorplans[buildingId], level);
+            showFloorplanForLevel(buildingId, floorplans[buildingId], level);
 		});
 	}
 	for(var i = levels; i >= 1; i--){
@@ -88,7 +96,6 @@ function LevelPickerControl(div) {
 }
 
 function pickerSelectUI(level){
-	console.log(level);
 	for(var i = 1; i <= levels; i++) {
 		if( i == level){
 			buttons[i].style['background-color'] = '#4CAF50';

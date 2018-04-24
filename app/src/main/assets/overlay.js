@@ -1,5 +1,4 @@
-function showFloorplanWithMarkersForLevel(building, floorplan, level){
-    console.log("Show Floorplan called");
+function showFloorplanForLevel(building, floorplan, level){
     clearFloorPlan(building);
     pickerSelectUI(level);
 
@@ -35,7 +34,6 @@ function showFloorplanWithMarkersForLevel(building, floorplan, level){
 
 
 function clearFloorPlan(building){
-    console.log("Clear Floorplan called");
     var canvas = canvasArray[building];
     if(canvas) {
         canvas.setMap(null);
