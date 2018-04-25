@@ -55,7 +55,6 @@ function getCurrentLocation() {
             if (doc.exists) {
                 console.log("Document data:", doc.data());
                 var currentLocation = doc.data().currentLocation;
-                // TODO: check if current location is null before updating
                 if (currentLocation != null){
                    currentPosition = {lat: currentLocation.lat, lng: currentLocation.lng };
                    currentLabel = currentLocation.roomLabel;
