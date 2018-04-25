@@ -23,7 +23,7 @@ function initMap() {
 	var latitude = parseFloat(Android.getLatitude());
 	var longitude = parseFloat(Android.getLongitude());
 	var location = {lat: latitude , lng: longitude };
-//	var location = {lat: 13.0304619 , lng: 77.56468619999998 };
+	// var location = {lat: 13.0304619 , lng: 77.56468619999998 };
 
 	map = new google.maps.Map(document.getElementById('map'), {
 		zoom: 18,
@@ -125,8 +125,8 @@ function LevelPickerControl(div) {
 	for(var i = 1; i <= levels; i++){
 		buttons.push(document.createElement("button"));
 		buttons[i].setAttribute('id', i);
-		buttons[i].style.display = 'block';
-		buttons[i].innerHTML = i;        
+		buttons[i].innerHTML = i; 
+		setButtonUI(buttons[i]);       
 		buttons[i].addEventListener('click', function(event){
 			console.log("Floor clicked " + event.target.id);
 			pickerLevel = event.target.id;
@@ -146,13 +146,22 @@ function LevelPickerControl(div) {
 	}
 }
 
+function setButtonUI(button){	
+	button.style.display = 'block';
+	button.style.backgroundColor =  '#009688';
+	button.style.color = 'ffffff';
+	button.style.border = '1px solid #00796B';
+}
+
 function pickerSelectUI(level){
 	for(var i = 1; i <= levels; i++) {
 		if( i == level){
-			buttons[i].style['background-color'] = '#009688';
+			buttons[i].style.backgroundColor = '#ffffff';
+			buttons[i].style.color = '#009688';
 		}
 		else {
-			buttons[i].style['background-color'] = "buttonface";
+			buttons[i].style.backgroundColor = '#009688';
+			buttons[i].style.color = '#ffffff';
 		}
 	}   
 }
