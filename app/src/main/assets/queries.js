@@ -50,21 +50,25 @@ function getCurrentLocation() {
     var userId = Android.getUserId();
 //  var userId = 'hg8Rcv2fQkfGZPoz9kFOpnfVpJx2';
 
-    var currentLocationListener = db.collection('users').doc(userId)
+    var currentLocationListener = db.collection('customers').doc(userId)
         .onSnapshot(function(doc) {
             if (doc.exists) {
                 console.log("Document data:", doc.data());
                 var currentLocation = doc.data().currentLocation;
                 // TODO: check if current location is null before updating
-                currentPosition = {lat: currentLocation.lat, lng: currentLocation.lng };
-                currentLabel = currentLocation.roomLabel;
-                currentFloor = currentLocation.floorNum;
+                if (currentLocation != null){
+                   currentPosition = {lat: currentLocation.lat, lng: currentLocation.lng };
+                   currentLabel = currentLocation.roomLabel;
+                   currentFloor = currentLocation.floorNum;
 
-                // if floor picker same as current floor set marker
-                if(pickerLevel == currentFloor){
-                    setMarker();
+                   // if floor picker same as current floor set marker
+                   if(pickerLevel == currentFloor){
+                       setMarker();
+                   }
                 }
-
+                else {
+                    marker.setVisible(false);
+                }
             } else {
                 console.log("No such document!");
             }

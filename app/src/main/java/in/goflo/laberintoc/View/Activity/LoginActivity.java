@@ -18,18 +18,24 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import in.goflo.laberintoc.Helper.AuthManager;
+import in.goflo.laberintoc.Model.UserDetails;
 import in.goflo.laberintoc.R;
 
 public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
+    private static final String CUSTOMER_COLLECTION = "customers";
 
     private FirebaseAuth mAuth;
     GoogleSignInClient mGoogleSignInClient;
@@ -133,6 +139,7 @@ public class LoginActivity extends AppCompatActivity {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "signInWithCredential:success");
                             FirebaseUser user = mAuth.getCurrentUser();
+                            saveUserInFirestore(user);
                             updateUI(user);
                         } else {
                             // If sign in fails, display a message to the user.
@@ -148,5 +155,26 @@ public class LoginActivity extends AppCompatActivity {
         Log.d(TAG, "Email: " + user.getEmail());
         Log.d(TAG, "UID: " + user.getUid());
         Log.d(TAG, "Display Name: " + user.getDisplayName());
+    }
+
+    public void saveUserInFirestore(FirebaseUser user){
+        if(user != null){
+            UserDetails customer = new UserDetails(user.getEmail(), user.getDisplayName());
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            DocumentReference docRef = db.collection(CUSTOMER_COLLECTION).document(user.getUid());
+            docRef.set(customer)
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            Log.d(TAG, "DocumentSnapshot successfully written!");
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.w(TAG, "Error writing document", e);
+                        }
+                    });
+        }
     }
 }
