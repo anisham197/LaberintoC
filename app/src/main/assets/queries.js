@@ -1,7 +1,7 @@
 function getFloorplans(callback) {
     var db = firebase.firestore();
-    var locationId = Android.getLocationId();
-//    var locationId = 'WwcCPsNYRnqXhe4WiL8q';
+    //  var locationId = Android.getLocationId();
+  var locationId = 'WwcCPsNYRnqXhe4WiL8q';
 
     db.collection("floorplans").where("locationId", "==", locationId).get()
         .then(querySnapshot => {
@@ -23,8 +23,8 @@ function getFloorplans(callback) {
 
 function getNumberOfFloors(callback) {
     var db = firebase.firestore();
-     var locationId = Android.getLocationId();
-//    var locationId = 'WwcCPsNYRnqXhe4WiL8q';
+    //  var locationId = Android.getLocationId();
+  var locationId = 'WwcCPsNYRnqXhe4WiL8q';
 
     db.collection("buildings").where("locationId", "==", locationId).get()
         .then(querySnapshot => {
@@ -47,21 +47,24 @@ function getNumberOfFloors(callback) {
 
 function getCurrentLocation() {
     var db = firebase.firestore();
-     var userId = Android.getUserId();
-//    var userId = '3T3LV2w65RUUQl24MsHBrhu2t7G2';
+    //  var userId = Android.getUserId();
+  var userId = 'hg8Rcv2fQkfGZPoz9kFOpnfVpJx2';
 
     var currentLocationListener = db.collection('users').doc(userId)
         .onSnapshot(function(doc) {
             if (doc.exists) {
                 console.log("Document data:", doc.data());
                 var currentLocation = doc.data().currentLocation;
-                var position = {lat: currentLocation.lat, lng: currentLocation.lng };
-                console.log(position);
-                var label = currentLocation.roomLabel;
-                console.log(label);
-                marker.setPosition(position);
-                marker.setTitle(label);
-                marker.setVisible(true);
+                // TODO: check if current location is null before updating
+                currentPosition = {lat: currentLocation.lat, lng: currentLocation.lng };
+                currentLabel = currentLocation.roomLabel;
+                currentFloor = currentLocation.floorNum;
+
+                // if floor picker same as current floor set marker
+                if(pickerLevel == currentFloor){
+                    setMarker();
+                }
+
             } else {
                 console.log("No such document!");
             }

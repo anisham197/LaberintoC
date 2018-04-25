@@ -5,10 +5,13 @@ import android.content.pm.PackageManager;
 import android.net.wifi.ScanResult;
 import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Window;
+import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Toast;
@@ -64,7 +67,13 @@ public class ViewMapActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_view_map);
+        ActionBar actionBar = getSupportActionBar();
+        if(actionBar != null){
+            actionBar.hide();
+        }
 
         groupLocationID = getIntent().getStringExtra(getString(R.string.locationID));
         UID = AuthManager.getUid(this);
@@ -114,14 +123,13 @@ public class ViewMapActivity extends AppCompatActivity {
         getLocationRunnable = new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(getApplicationContext(), "Runnable called", Toast.LENGTH_SHORT).show();
                 if (finalFingerprint != null) {
                     JSONObject requestJSON = createRequestJson();
                     if (requestJSON != null) {
-                        // trackLocation(requestJSON);
+                        trackLocation(requestJSON);
                     }
                 }
-                handler.postDelayed( this , 5000);
+                handler.postDelayed( this , 2000);
                 Log.d(TAG, "Inner handler called");
             }
         };
