@@ -17,7 +17,7 @@ var infowindow;
 var pickerLevel = 2;
 var currentPosition;
 var currentLabel;
-var currentFloor;
+var currentFloor = 0;
 
 function initMap() {
 	var latitude = parseFloat(Android.getLatitude());
@@ -72,16 +72,13 @@ function initMap() {
 		
 		getFloorplans(function(result){
 			if(result == true){
-				showFloorplanForLevel(floorplans[buildingId], pickerLevel);
-				// recenter();
+				//implement listener to keep track of current location
+				getCurrentLocation();
 			}
 			else {
 				console.log("Unable to retrieve floorplans");
 			}
 		});
-		
-		//implement listener to keep track of current location
-		getCurrentLocation();
 
 		//clear the listener, we only need it once
 		google.maps.event.clearListeners(map, 'tilesloaded');
@@ -97,16 +94,16 @@ function setMarker() {
 }
 
 
-function recenter() {
-	pickerLevel = currentFloor;
-	pickerSelectUI(currentFloor);
-	showFloorplanForLevel(floorplans[buildingId], currentFloor);
+// function recenter() {
+// 	pickerLevel = currentFloor;
+// 	pickerSelectUI(currentFloor);
+// 	showFloorplanForLevel(floorplans[buildingId], currentFloor);
 
-	setMarker();
+// 	setMarker();
 
-	map.setCenter(currentPosition);
-	map.setZoom(20);
-}
+// 	map.setCenter(currentPosition);
+// 	map.setZoom(20);
+// }
 
 
 function displayLevelPicker() {
