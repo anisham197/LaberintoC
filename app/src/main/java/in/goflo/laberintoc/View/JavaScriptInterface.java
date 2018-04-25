@@ -13,10 +13,13 @@ public class JavaScriptInterface {
 
     Context context;
     String locationID;
+    Double latitude, longitude;
 
-    public JavaScriptInterface(Context context, String locationID) {
+    public JavaScriptInterface(Context context, String locationID, Double latitude, Double longitude) {
         this.context = context;
         this.locationID = locationID;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
 
@@ -31,10 +34,14 @@ public class JavaScriptInterface {
         return AuthManager.getUid(context);
     }
 
-    //TODO: define lat lng of location
     @android.webkit.JavascriptInterface
-    public void getLocationLatLng() {
-        return;
+    public String getLatitude() {
+        return latitude.toString();
+    }
+
+    @android.webkit.JavascriptInterface
+    public String getLongitude() {
+        return longitude.toString();
     }
 
 }

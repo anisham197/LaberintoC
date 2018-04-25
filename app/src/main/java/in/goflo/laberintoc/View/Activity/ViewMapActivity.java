@@ -5,10 +5,13 @@ import android.content.pm.PackageManager;
 import android.net.wifi.ScanResult;
 import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Window;
+import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Toast;
@@ -51,6 +54,7 @@ public class ViewMapActivity extends AppCompatActivity {
     private String UID;
     private String location = "xxxxx";
     private String groupLocationID;
+    private Double latitude, longitude;
 
     RequestQueue queue;
     final static String url = "http://vendor.maps.goflo.in/trackLocation";
@@ -68,11 +72,13 @@ public class ViewMapActivity extends AppCompatActivity {
 
         groupLocationID = getIntent().getStringExtra(getString(R.string.locationID));
         UID = AuthManager.getUid(this);
+        latitude = getIntent().getDoubleExtra(getString(R.string.latitude), 0);
+        longitude =getIntent().getDoubleExtra(getString(R.string.longitude), 0);
 
         handler = new Handler();
         webView = findViewById(R.id.web_view);
         webView.loadUrl("file:///android_asset/map.html");
-        webView.addJavascriptInterface(new JavaScriptInterface(this, groupLocationID), "Android");
+        webView.addJavascriptInterface(new JavaScriptInterface(this, groupLocationID, latitude, longitude), "Android");
 
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -114,14 +120,13 @@ public class ViewMapActivity extends AppCompatActivity {
         getLocationRunnable = new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(getApplicationContext(), "Runnable called", Toast.LENGTH_SHORT).show();
                 if (finalFingerprint != null) {
                     JSONObject requestJSON = createRequestJson();
                     if (requestJSON != null) {
-                        // trackLocation(requestJSON);
+                        trackLocation(requestJSON);
                     }
                 }
-                handler.postDelayed( this , 5000);
+                handler.postDelayed( this , 2000);
                 Log.d(TAG, "Inner handler called");
             }
         };

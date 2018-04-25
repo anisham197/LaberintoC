@@ -12,7 +12,11 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import in.goflo.laberintoc.LiveData.FirestoreQueryLiveData;
@@ -26,6 +30,7 @@ public class LocationViewModel extends ViewModel {
 
     private static final String TAG = "LocationViewModel";
     private static final String KEY_NAME = "name";
+    private static final String KEY_lATLNG = "location";
     private static final String KEY_LOCATIONS = "locations";
 
     private static final Query LOCATION_QUERY =FirebaseFirestore.getInstance().collection(KEY_LOCATIONS);
@@ -39,7 +44,10 @@ public class LocationViewModel extends ViewModel {
             List<DocumentSnapshot> locations = querySnapshot.getDocuments();
             List<LocationDetails> locationList = new ArrayList<>();
             for(DocumentSnapshot location : locations){
-                LocationDetails locationDetails = new LocationDetails(location.get(KEY_NAME).toString(), location.getId());
+                HashMap<String, Double> latlng = (HashMap<String, Double>)(location.get(KEY_lATLNG));
+                Double latitude = latlng.get("lat");
+                Double longitude = latlng.get("lng");
+                LocationDetails locationDetails = new LocationDetails(location.get(KEY_NAME).toString(), location.getId(), latitude, longitude);
                 locationList.add(locationDetails);
                 Log.d(TAG, "location " + locationDetails.getLocationID() + " " + locationDetails.getLocationName());
             }

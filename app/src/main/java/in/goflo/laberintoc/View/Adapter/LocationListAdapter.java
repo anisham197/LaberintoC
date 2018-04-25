@@ -63,6 +63,8 @@ public class LocationListAdapter extends RecyclerView.Adapter<LocationListAdapte
             Intent intent = new Intent(context, ViewMapActivity.class);
             intent.putExtra(context.getString(R.string.locationID), list.get(position).getLocationID());
             intent.putExtra(context.getString(R.string.locationName), list.get(position).getLocationName());
+            intent.putExtra(context.getString(R.string.latitude), list.get(position).getLatitude());
+            intent.putExtra(context.getString(R.string.longitude), list.get(position).getLongitude());
             context.startActivity(intent);
         }
     }
