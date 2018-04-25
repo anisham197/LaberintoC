@@ -14,14 +14,16 @@ var levels; // number of levels for current building in focus
 var buildingId = 's7wEIR7XMKqW0v5PkScR';
 var marker;
 var infowindow;
-var pickerLevel = 1;
+var pickerLevel = 2;
 var currentPosition;
 var currentLabel;
 var currentFloor;
 
 function initMap() {
-	//TODO: retrieve location from Android
-	var location = {lat: 13.030451, lng: 77.564691 };
+	var latitude = parseFloat(Android.getLatitude());
+	var longitude = parseFloat(Android.getLongitude());
+	var location = {lat: latitude , lng: longitude };
+//	var location = {lat: 13.0304619 , lng: 77.56468619999998 };
 
 	map = new google.maps.Map(document.getElementById('map'), {
 		zoom: 18,
@@ -71,6 +73,7 @@ function initMap() {
 		getFloorplans(function(result){
 			if(result == true){
 				showFloorplanForLevel(floorplans[buildingId], pickerLevel);
+				// recenter();
 			}
 			else {
 				console.log("Unable to retrieve floorplans");
@@ -79,8 +82,6 @@ function initMap() {
 		
 		//implement listener to keep track of current location
 		getCurrentLocation();
-
-		// recenter();
 
 		//clear the listener, we only need it once
 		google.maps.event.clearListeners(map, 'tilesloaded');
@@ -98,10 +99,11 @@ function setMarker() {
 
 function recenter() {
 	pickerLevel = currentFloor;
-	pickerSelectUI(pickerLevel);
-	showFloorplanForLevel(floorplans[buildingId], pickerLevel);
+	pickerSelectUI(currentFloor);
+	showFloorplanForLevel(floorplans[buildingId], currentFloor);
 
 	setMarker();
+
 	map.setCenter(currentPosition);
 	map.setZoom(20);
 }
@@ -147,7 +149,7 @@ function LevelPickerControl(div) {
 function pickerSelectUI(level){
 	for(var i = 1; i <= levels; i++) {
 		if( i == level){
-			buttons[i].style['background-color'] = '#4CAF50';
+			buttons[i].style['background-color'] = '#009688';
 		}
 		else {
 			buttons[i].style['background-color'] = "buttonface";

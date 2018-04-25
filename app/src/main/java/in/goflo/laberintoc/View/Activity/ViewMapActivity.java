@@ -54,6 +54,7 @@ public class ViewMapActivity extends AppCompatActivity {
     private String UID;
     private String location = "xxxxx";
     private String groupLocationID;
+    private Double latitude, longitude;
 
     RequestQueue queue;
     final static String url = "http://vendor.maps.goflo.in/trackLocation";
@@ -67,21 +68,17 @@ public class ViewMapActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_view_map);
-        ActionBar actionBar = getSupportActionBar();
-        if(actionBar != null){
-            actionBar.hide();
-        }
 
         groupLocationID = getIntent().getStringExtra(getString(R.string.locationID));
         UID = AuthManager.getUid(this);
+        latitude = getIntent().getDoubleExtra(getString(R.string.latitude), 0);
+        longitude =getIntent().getDoubleExtra(getString(R.string.longitude), 0);
 
         handler = new Handler();
         webView = findViewById(R.id.web_view);
         webView.loadUrl("file:///android_asset/map.html");
-        webView.addJavascriptInterface(new JavaScriptInterface(this, groupLocationID), "Android");
+        webView.addJavascriptInterface(new JavaScriptInterface(this, groupLocationID, latitude, longitude), "Android");
 
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
