@@ -1,20 +1,19 @@
 package in.goflo.laberintoc.View.Activity;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.net.wifi.ScanResult;
-import android.support.annotation.Nullable;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
+import android.view.Window;
+import android.view.WindowManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
@@ -32,11 +31,10 @@ import org.json.JSONObject;
 
 import java.util.List;
 
+import in.goflo.laberintoc.Helper.AuthManager;
 import in.goflo.laberintoc.Helper.PermissionManager;
-import in.goflo.laberintoc.Model.RoomDetails;
 import in.goflo.laberintoc.R;
-import in.goflo.laberintoc.ViewModel.BuildingViewModel;
-import in.goflo.laberintoc.ViewModel.RoomViewModel;
+import in.goflo.laberintoc.View.JavaScriptInterface;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
@@ -51,52 +49,94 @@ public class ViewMapActivity extends AppCompatActivity {
     private static final String PERMISSION_MSG = "Location Services Permission required for this app";
     private static final String TAG = "ViewMapActivity";
 
-    private JSONArray fingerprintArray;
-    private JSONObject requestJSON;
+    private JSONArray finalFingerprint;
 
-    private TextView locationTextView, responseTextView;
-    private Button trackButton;
-
-    private String UID = "xxxx";
+    private String UID;
     private String location = "xxxxx";
-    private String group;
-
-    private String buildingID, buildingName, roomID, roomName;
+    private String groupLocationID;
+    private Double latitude, longitude;
 
     RequestQueue queue;
-    final static String url = "http://maps.goflo.in/track";
+    final static String url = "http://vendor.maps.goflo.in/trackLocation";
 
     private Disposable wifiSubscription;
+
+    private Handler handler;
+    private Runnable getLocationRunnable;
+    private WebView webView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_map);
 
-        locationTextView = (TextView) findViewById(R.id.textview_location);
-        responseTextView = (TextView) findViewById(R.id.textView_response);
-        trackButton = (Button)findViewById(R.id.button_track);
+        groupLocationID = getIntent().getStringExtra(getString(R.string.locationID));
+        UID = AuthManager.getUid(this);
+        latitude = getIntent().getDoubleExtra(getString(R.string.latitude), 0);
+        longitude =getIntent().getDoubleExtra(getString(R.string.longitude), 0);
 
-        fingerprintArray = new JSONArray();
-        group = getIntent().getStringExtra(getString(R.string.locationID));
+        handler = new Handler();
+        webView = findViewById(R.id.web_view);
+        webView.loadUrl("file:///android_asset/map.html");
+        webView.addJavascriptInterface(new JavaScriptInterface(this, groupLocationID, latitude, longitude), "Android");
 
-        trackButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                trackLocation();
-            }
-        });
+        WebSettings webSettings = webView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webSettings.setAllowFileAccessFromFileURLs(true);
+
     }
 
-    private void trackLocation() {
-        locationTextView.setText("Location");
-        responseTextView.setText("Response");
+    @Override
+    protected void onResume() {
+        super.onResume();
         if(PermissionManager.checkAndRequestPermissions(this)) {
+            Log.d(TAG, "On Resume called, reading Wifi fingerprints");
             readFingerprints();
+            requestCurrentLocation();
         }
     }
 
+    @Override protected void onPause() {
+        super.onPause();
+        safelyUnsubscribe(wifiSubscription);
+        handler.removeCallbacks(getLocationRunnable);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        safelyUnsubscribe(wifiSubscription);
+        handler.removeCallbacks(getLocationRunnable);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        safelyUnsubscribe(wifiSubscription);
+        handler.removeCallbacks(getLocationRunnable);
+    }
+
+    private void requestCurrentLocation() {
+        getLocationRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (finalFingerprint != null) {
+                    JSONObject requestJSON = createRequestJson();
+                    if (requestJSON != null) {
+                        trackLocation(requestJSON);
+                    }
+                }
+                handler.postDelayed( this , 2000);
+                Log.d(TAG, "Inner handler called");
+            }
+        };
+        handler.post( getLocationRunnable );
+        Log.d(TAG, "Outer handler called");
+    }
+
+
     private void readFingerprints(){
+        Log.d(TAG, "Read Fingerprints called");
         boolean fineLocationPermissionNotGranted =
                 ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED;
         boolean coarseLocationPermissionNotGranted =
@@ -117,16 +157,14 @@ public class ViewMapActivity extends AppCompatActivity {
                     .subscribe(new Consumer<List<ScanResult>>() {
                         @Override
                         public void accept(List<ScanResult> results) throws Exception {
-                            Log.d(TAG, "results " + results);
-                            safelyUnsubscribe(wifiSubscription);
+                            JSONArray fingerprintArray = new JSONArray();
                             for (ScanResult result : results) {
                                 JSONObject temp = new JSONObject();
                                 temp.put("mac",result.BSSID);
                                 temp.put("rssi",result.level);
                                 fingerprintArray.put(temp);
                             }
-                            createRequestJson();
-                            getResult();
+                            finalFingerprint =  fingerprintArray;
                         }
                     });
         }catch (SecurityException e){
@@ -134,32 +172,32 @@ public class ViewMapActivity extends AppCompatActivity {
         }
     }
 
-    private void createRequestJson() throws Exception{
-        requestJSON = new JSONObject();
-        long timestamp = System.currentTimeMillis();
 
-        requestJSON.put("group", group);
-        requestJSON.put("username", UID);
-        requestJSON.put("location", location);
-        requestJSON.put("time", timestamp);
-        requestJSON.put("wifi-fingerprint", fingerprintArray);
-        Log.d(TAG, "json "  + requestJSON);
+    private JSONObject createRequestJson(){
+        JSONObject requestJSON = new JSONObject();
+        long timestamp = System.currentTimeMillis();
+        try {
+            requestJSON.put("group", groupLocationID);
+            requestJSON.put("username", UID);
+            requestJSON.put("location", location);
+            requestJSON.put("time", timestamp);
+            requestJSON.put("wifi-fingerprint", finalFingerprint);
+            Log.d(TAG, "json "  + requestJSON);
+            return requestJSON;
+        }
+        catch (JSONException e){
+            Log.d(TAG, e.getMessage());
+            return null;
+        }
     }
 
-    private void getResult() {
+    private void trackLocation(JSONObject requestJSON) {
         queue = Volley.newRequestQueue(this);
         JsonObjectRequest request_json = new JsonObjectRequest(url, requestJSON,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.d(TAG,response.toString());
-                        responseTextView.setText(response.toString());
-                        try {
-                            roomID = response.get("location").toString();
-                            getRoomData();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
+                        Log.d(TAG, response.toString());
                     }
                 }, new Response.ErrorListener() {
             @Override
@@ -170,53 +208,12 @@ public class ViewMapActivity extends AppCompatActivity {
         queue.add(request_json);
     }
 
-    private void getRoomData() {
-        RoomViewModel roomViewModel = ViewModelProviders.of(this).get(RoomViewModel.class);
-        roomViewModel.setRoomID(roomID);
-        LiveData<RoomDetails> roomLiveData = roomViewModel.getRoomLiveData();
-        roomLiveData.observe(this, new Observer<RoomDetails>() {
-            @Override
-            public void onChanged(@Nullable RoomDetails roomDetails) {
-                if(roomDetails != null) {
-                    roomName = roomDetails.getRoomName();
-                    buildingID = roomDetails.getBuildingID();
-                    getBuildingData();
-                }
-            }
-        });
-    }
-
-    private void getBuildingData() {
-        BuildingViewModel buildingViewModel = ViewModelProviders.of(this).get(BuildingViewModel.class);
-        buildingViewModel.setBuildingID(buildingID);
-        LiveData<String> buildingLiveData = buildingViewModel.getBuildingLiveData();
-        buildingLiveData.observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(@Nullable String s) {
-                buildingName = s;
-                Log.d(TAG, "building name "  + buildingName);
-                locationTextView.setText("You are in " + roomName + " in " + buildingName);
-            }
-        });
-
-    }
-
     private void safelyUnsubscribe(Disposable... subscriptions) {
         for (Disposable subscription : subscriptions) {
             if (subscription != null && ! subscription.isDisposed()) {
                 subscription.dispose();
             }
         }
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    @Override protected void onPause() {
-        super.onPause();
-        safelyUnsubscribe(wifiSubscription);
     }
 
     @Override
