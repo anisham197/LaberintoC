@@ -56,16 +56,17 @@ function getCurrentLocation() {
                 console.log("Document data:", doc.data());
                 var currentLocation = doc.data().currentLocation;
                 if (currentLocation != null){
+                    if( currentFloor != currentLocation.floorNum) {
+                        currentFloor = currentLocation.floorNum;
+                        showFloorplanForLevel(floorplans[buildingId], currentFloor);
+                    }
                    currentPosition = {lat: currentLocation.lat, lng: currentLocation.lng };
                    currentLabel = currentLocation.roomLabel;
-                   currentFloor = currentLocation.floorNum;
-
-                   // if floor picker same as current floor set marker
-                   if(pickerLevel == currentFloor){
-                       setMarker();
-                   }
+                   setMarker();                
                 }
                 else {
+                    currentFloor = 2;
+                    showFloorplanForLevel(floorplans[buildingId], currentFloor);
                     marker.setVisible(false);
                 }
             } else {
