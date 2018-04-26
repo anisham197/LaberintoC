@@ -30,7 +30,7 @@ public class LocationViewModel extends ViewModel {
 
     private static final String TAG = "LocationViewModel";
     private static final String KEY_NAME = "name";
-    private static final String KEY_lATLNG = "location";
+    private static final String KEY_LATLNG = "location";
     private static final String KEY_LOCATIONS = "locations";
 
     private static final Query LOCATION_QUERY =FirebaseFirestore.getInstance().collection(KEY_LOCATIONS);
@@ -44,12 +44,14 @@ public class LocationViewModel extends ViewModel {
             List<DocumentSnapshot> locations = querySnapshot.getDocuments();
             List<LocationDetails> locationList = new ArrayList<>();
             for(DocumentSnapshot location : locations){
-                HashMap<String, Double> latlng = (HashMap<String, Double>)(location.get(KEY_lATLNG));
-                Double latitude = latlng.get("lat");
-                Double longitude = latlng.get("lng");
-                LocationDetails locationDetails = new LocationDetails(location.get(KEY_NAME).toString(), location.getId(), latitude, longitude);
-                locationList.add(locationDetails);
-                Log.d(TAG, "location " + locationDetails.getLocationID() + " " + locationDetails.getLocationName());
+                if (location.get(KEY_LATLNG) != null) {
+                    HashMap<String, Double> latlng = (HashMap<String, Double>) (location.get(KEY_LATLNG));
+                    Double latitude = latlng.get("lat");
+                    Double longitude = latlng.get("lng");
+                    LocationDetails locationDetails = new LocationDetails(location.get(KEY_NAME).toString(), location.getId(), latitude, longitude);
+                    locationList.add(locationDetails);
+                    Log.d(TAG, "location " + locationDetails.getLocationID() + " " + locationDetails.getLocationName());
+                }
             }
             return locationList;
         }
