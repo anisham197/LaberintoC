@@ -11,10 +11,11 @@ var floorplans = {};
 var numberOfFloors = {};
 var canvas;
 var levels; // number of levels for current building in focus
-var buildingId = 's7wEIR7XMKqW0v5PkScR';
+//var buildingId = 's7wEIR7XMKqW0v5PkScR';
+var buildingId = 'j0AGXwFdHKH9NUOBwSBE';
 var marker;
 var infowindow;
-var pickerLevel = 2;
+var pickerLevel = 1;
 var currentPosition;
 var currentLabel;
 var currentFloor = 0;
@@ -48,9 +49,11 @@ function initMap() {
 			icon: {
                 path: google.maps.SymbolPath.CIRCLE,
                 scale: 5,
-                fillColor: '#4285f4',
+//                fillColor: '#4285f4',
+                fillColor: '#ffffff',
                 fillOpacity: 1,
-                strokeColor: '#4285f4',
+//                strokeColor: '#4285f4',
+                strokeColor: '#ffffff',
                 strokeOpacity: 1
             }
 		});
