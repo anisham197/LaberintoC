@@ -8,7 +8,10 @@ function getFloorplans(callback) {
             if(querySnapshot.size > 0) {
                 querySnapshot.forEach(doc => {
                     floorplans[doc.id] = new Floorplan(doc.data());
+                    showFloorplanForLevel(floorplans[doc.id], pickerLevel);
                 });
+                // showFloorplanForLevel(floorplans, pickerLevel)
+                console.log(floorplans);
                 callback(true);
             } else {
                 console.log("No such document");
@@ -24,7 +27,7 @@ function getFloorplans(callback) {
 function getNumberOfFloors(callback) {
     var db = firebase.firestore();
     var locationId = Android.getLocationId();
-//  var locationId = 'WwcCPsNYRnqXhe4WiL8q';
+    // var locationId = 'WwcCPsNYRnqXhe4WiL8q';
 
     db.collection("buildings").where("locationId", "==", locationId).get()
         .then(querySnapshot => {
@@ -48,7 +51,7 @@ function getNumberOfFloors(callback) {
 function getCurrentLocation() {
     var db = firebase.firestore();
     var userId = Android.getUserId();
-//  var userId = 'hg8Rcv2fQkfGZPoz9kFOpnfVpJx2';
+    // var userId = 'hg8Rcv2fQkfGZPoz9kFOpnfVpJx2';
 
     var currentLocationListener = db.collection('customers').doc(userId)
         .onSnapshot(function(doc) {
@@ -58,7 +61,9 @@ function getCurrentLocation() {
                 if (currentLocation != null){
                     if( currentFloor != currentLocation.floorNum) {
                         currentFloor = currentLocation.floorNum;
-                        showFloorplanForLevel(floorplans[buildingId], currentFloor);
+                        for ( key in floorplans) {
+                            showFloorplanForLevel(floorplans[key], currentFloor);
+                        }                        
                     }
                    currentPosition = {lat: currentLocation.lat, lng: currentLocation.lng };
                    currentLabel = currentLocation.roomLabel;
@@ -66,7 +71,9 @@ function getCurrentLocation() {
                 }
                 else {
                     currentFloor = 2;
-                    showFloorplanForLevel(floorplans[buildingId], currentFloor);
+                    for ( key in floorplans) {
+                        showFloorplanForLevel(floorplans[key], currentFloor);
+                    } 
                     marker.setVisible(false);
                 }
             } else {

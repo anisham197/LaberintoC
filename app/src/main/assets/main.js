@@ -9,10 +9,8 @@ var map;
 var buttons = [];
 var floorplans = {};
 var numberOfFloors = {};
-var canvas;
+var canvasArray = [];
 var levels; // number of levels for current building in focus
-//var buildingId = 's7wEIR7XMKqW0v5PkScR';
-var buildingId = 'iB19c3KlJEgrSKHmnyDK';
 var marker;
 var infowindow;
 var pickerLevel = 2;
@@ -63,7 +61,8 @@ function initMap() {
 	
 		getNumberOfFloors(function(result){
 			if( result == true) {
-				levels = numberOfFloors[buildingId];
+				// levels = numberOfFloors[buildingId];
+				levels = 5;
 				displayLevelPicker();
 			}
 			else {
@@ -94,19 +93,6 @@ function setMarker() {
 	infowindow.setContent(currentLabel);
 }
 
-
-// function recenter() {
-// 	pickerLevel = currentFloor;
-// 	pickerSelectUI(currentFloor);
-// 	showFloorplanForLevel(floorplans[buildingId], currentFloor);
-
-// 	setMarker();
-
-// 	map.setCenter(currentPosition);
-// 	map.setZoom(20);
-// }
-
-
 function displayLevelPicker() {
 	var picker = document.createElement('level_picker');
 	picker.style['padding-left'] = '20px';
@@ -128,8 +114,9 @@ function LevelPickerControl(div) {
 		buttons[i].addEventListener('click', function(event){
 			console.log("Floor clicked " + event.target.id);
 			pickerLevel = event.target.id;
-			// TODO: make it specific to a building based on zoom level
-			showFloorplanForLevel(floorplans[buildingId], pickerLevel);
+			for ( key in floorplans) {
+				showFloorplanForLevel(floorplans[key], pickerLevel);
+			} 
 
 			if(currentFloor != pickerLevel){
 				marker.setVisible(false);

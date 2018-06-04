@@ -3,6 +3,8 @@ function showFloorplanForLevel(floorplan, level){
     pickerSelectUI(level);
 
     var floorplanInfo = floorplan.getFloorplanInfo(level);
+    console.log("Floorplan Info");
+    console.log(floorplanInfo);
     if(floorplanInfo == null) {
         return;
     }
@@ -22,19 +24,25 @@ function showFloorplanForLevel(floorplan, level){
     google.maps.event.clearListeners(image, 'load');
     google.maps.event.addDomListener(image,'load',function(){
         console.log("Image load listener called");
-        canvas = new FPOverlay(
+        var canvas = new FPOverlay(
             image,
             map,
             {x: bearingX, y: bearingY},
             {sw: coordinates.sw, nw: coordinates.nw, ne: coordinates.ne, se: coordinates.se}
         );
-    });
+        canvasArray.push(canvas);
+        console.log(canvas);
+    });       
+
 }
 
-
 function clearFloorPlan(){
-    if(canvas) {
-        canvas.setMap(null);
-        canvas = null;
-    }   
+    for(var i = 0; i < canvasArray.length; i++) {
+        var canvas = canvasArray[i];
+        if(canvas) {
+            canvas.setMap(null);
+            canvas = null;
+        }
+    }
+    canvasArray = [];
 }
