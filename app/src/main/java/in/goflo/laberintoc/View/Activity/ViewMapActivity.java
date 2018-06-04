@@ -57,7 +57,7 @@ public class ViewMapActivity extends AppCompatActivity {
     private Double latitude, longitude;
 
     RequestQueue queue;
-    final static String url = "http://vendor.maps.goflo.in/trackLocation";
+    final static String url = "http://beta.vendor.maps.goflo.in/trackLocation";
 
     private Disposable wifiSubscription;
 
